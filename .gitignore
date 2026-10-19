@@ -1,0 +1,8 @@
+runs/
+data/
+raw_data/
+.jupyter-*
+__pycache__/
+.pytest_cache/
+*.md
+!README.md
