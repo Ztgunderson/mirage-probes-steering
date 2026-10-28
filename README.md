@@ -1,77 +1,83 @@
-# mirage-probes-steering
+# Mirage probes: recreation and steering on medical VQA
 
-- A recreation of Ben-Levi et al., *Mirage Probes: How Vision Models Fake Visual Understanding* ([arXiv 2606.13870](https://arxiv.org/abs/2606.13870)), on Qwen3-VL-4B-Instruct, followed by a steering-vector extension: steering the no-image pre-answer state toward abstaining on open-ended medical VQA (SLAKE).
-- The original method, prompts, generator, labels and mutations are from the authors' code, [danielbenlevi/mirage_probes](https://github.com/danielbenlevi/mirage_probes). That repo is included unmodified as a git submodule at `upstream/`, pinned to commit `06c8d2d`. Upstream has no LICENSE file, so its code is referenced here, not copied.
-- This repo holds only the new work: the `miragelab` package, its tests, the review notebooks, the overnight queue scripts, and one patch to upstream.
-- Write-up: `docs/index.html` (GitHub Pages, served from `docs/`).
+Do probes and steering vectors catch a vision-language model that answers about an image it never saw?
 
-## Layout
+[Report](https://ztgunderson.github.io/mirage-probes-steering/) | [Full tables](docs/details.html) | [Upstream paper repo](https://github.com/danielbenlevi/mirage_probes) | [Cite](#cite)
 
-| path | contents |
-|---|---|
-| `miragelab/` | extraction, labels/probes (`analysis`), SLAKE generation (`slake`), steering (`steer`, `dose`, `try_dirs`, `compare`), pressure-prompt states (`pressure`), text-only prior (`prior`), cross-model transfer (`transfer`), self-report (`introspect`), LLM-judge sample (`judge`) |
-| `tests/` | `test_miragelab.py` (CPU, no model loads); `dryrun.py` (CPU dry run on a real `runs/slake`, model stubbed) |
-| `review/` | executed notebooks 01–05 (outputs kept) |
-| `scripts/queue/` | `chain-*.sh` overnight queues as they were run (they `cd` into the original bench checkout and call `production.miragelab.*`) |
-| `patches/vlm_model_registry-qwen3_vl_4b.patch` | adds `qwen3_vl_4b_instruct` to upstream's `vlm_model_registry.py` (needed only to regenerate VQA-RAD / MedXpertQA-MM responses with the upstream generator) |
-| `upstream/` | submodule: danielbenlevi/mirage_probes @ `06c8d2d` |
-| `docs/` | Pages site: `index.html`, `img/` (figures exported from the notebooks) |
+## Abstract
 
-Not in git: `runs/` (outputs, ~2.5 GB), `data/`, `raw_data/` (datasets), Jupyter token/pid files.
+Ben-Levi et al. call a confident answer about a missing image a "mirage" and show that linear probes can read it from model activations. This repo recreates their probes on Qwen3-VL-4B-Instruct, a much smaller model than the ones in the paper, and the recreation held. It then checks what the strongest probe reads: mostly the model's own reply, not the state before it answers. It adds steering vectors, used on open-ended medical questions (SLAKE) as a second test of the probes, compared against a one-sentence honesty instruction. In the report the instruction did better than the vector on small held-out sets, and controls do not yet separate the vector's direction from the size of the push. Results are preliminary: test sets are small, labels come from a regex, and one section is unreviewed.
 
-## Paths
+The method, code, prompts, generator and labels for the recreation are Ben-Levi et al.'s. The model swap, label fix, probe controls, SLAKE analysis and steering work are new here.
 
-- `MIRAGE_ROOT`: data root holding `runs/`, `raw_data/`, `data/`. Default: the current working directory. All `--run runs/...` defaults are relative to it.
-- `MIRAGE_UPSTREAM`: upstream checkout used for `scripts.data.gen_mutations_get_responses`. Default: `upstream/` next to `miragelab/`.
-- Notebooks: run from `review/`; they read `MIRAGE_ROOT` (default `..`).
+## Repository layout
 
-## Setup
+```
+miragelab/   package: extraction, probes, SLAKE generation, steering, controls
+tests/       test_miragelab.py (no model loads), dryrun.py
+review/      executed notebooks 01-05 (outputs kept)
+scripts/     queue/chain-*.sh, the overnight run sequences as they were run
+patches/     one patch adding Qwen3-VL-4B to upstream's model registry
+docs/        report (index.html), full tables (details.html), figures
+upstream/    git submodule: danielbenlevi/mirage_probes, pinned at 06c8d2d
+```
+
+## Setup and reproduce
 
 ```bash
-git clone --recurse-submodules <this repo>
+git clone --recurse-submodules https://github.com/Ztgunderson/mirage-probes-steering
 cd mirage-probes-steering
 python -m venv .venv && . .venv/bin/activate
 pip install torch transformers accelerate scikit-learn numpy pandas pillow requests tqdm matplotlib phate pytest jupyter
-```
+python -m pytest -q tests
 
-- Versions used: torch 2.11.0, transformers 5.16.1, scikit-learn 1.7.2, numpy 2.2.6, pandas 2.3.3, phate 2.0.0, accelerate 1.14.0 (Jetson Orin, Python 3.10).
-- Response generation (`miragelab.slake`, upstream generator) calls an OpenAI-compatible vLLM server serving Qwen3-VL-4B-Instruct as `qwen3-vl-4b` at `http://127.0.0.1:8000/v1`.
-- Datasets expected under `MIRAGE_ROOT`: `raw_data/slake/{train,validation,test}.json` + `raw_data/slake/imgs/`; `data/vqa_rad.parquet`, `data/medxpertqa_mm.parquet` (upstream loaders, `upstream/scripts/data/`).
-- Upstream's `data/final_data/*_responses.json` / `*_contrastive.json` are Git LFS files and are not needed here.
-
-## Run
-
-```bash
-python -m pytest -q tests                      # CPU, ~10 s
-export MIRAGE_ROOT=/path/to/data-root          # holds runs/, raw_data/, data/
-cd "$MIRAGE_ROOT"
-
-# Part 1: VQA-RAD recreation (upstream generator; args from runs/full/run_metadata.json, exact invocation not recorded)
-git -C <repo>/upstream apply ../patches/vlm_model_registry-qwen3_vl_4b.patch
-python <repo>/upstream/scripts/data/gen_mutations_get_responses.py --datasets vqa_rad --vlm qwen3_vl_4b_instruct \
-  --vllm_model qwen3-vl-4b --vllm_base_url http://127.0.0.1:8000/v1 \
-  --reuse_mutations_path <repo>/upstream/data/final_data/mutations.json --save_path runs/full
-python -c "from miragelab.analysis import subset; print(subset('runs/full'))"
-python -m miragelab.extract --responses runs/full/responses_subset.json --out runs/full/acts
-
-# Part 2: SLAKE generation, states, steering
+export MIRAGE_ROOT=/path/to/data-root     # holds runs/, raw_data/, data/
+cd "$MIRAGE_ROOT" && export PYTHONPATH=<repo>
 python -m miragelab.slake --out runs/slake
 python -m miragelab.extract --dataset slake --responses runs/slake/responses.json --out runs/slake/acts
 python -m miragelab.steer --run runs/slake
 python -m miragelab.pressure --run runs/slake
-python -m miragelab.dose --run runs/slake --stage {fit,dose,test,sweep,pool} [--seed N] [--vectors_from 0] [--model {think4b,instruct2b,cosmos2b}]
+python -m miragelab.dose --run runs/slake --stage {fit,dose,test,sweep,pool} [--seed N]
 python -m miragelab.introspect --run runs/slake
-python -m miragelab.transfer --stage {gen,steer} --model {instruct2b,cosmos2b}
+cd <repo>/review && jupyter lab           # notebooks 01-05, in order
 ```
 
-- `<repo>` = path to this checkout; run with `PYTHONPATH=<repo>` (or from the repo root with `MIRAGE_ROOT` set).
-- Each module's `--help` lists its arguments; `scripts/queue/chain-*.sh` show the exact sequences and timeouts that produced `runs/`.
-- Notebooks: `cd review && MIRAGE_ROOT=... jupyter lab`.
+- Versions used: torch 2.11.0, transformers 5.16.1, scikit-learn 1.7.2, numpy 2.2.6, pandas 2.3.3, phate 2.0.0 (Jetson Orin, Python 3.10). There is no pyproject or requirements file.
+- Generation needs an OpenAI-compatible vLLM server serving Qwen3-VL-4B-Instruct as `qwen3-vl-4b` at `http://127.0.0.1:8000/v1`.
+- Datasets are not included. SLAKE is expected under `raw_data/slake/`; VQA-RAD and MedXpertQA-MM under `data/` via upstream's loaders.
+- Run outputs (about 2.5 GB) are not in the repo. The notebooks need those outputs to re-execute, so a clean clone shows the saved outputs only. The VQA-RAD generation step is in the report's Appendix F and `scripts/queue/`; its exact original invocation was not recorded.
 
-## Results
+## Status and caveats
 
-- `docs/index.html` (scaffold, numbers with sources) and the executed notebooks in `review/`.
+- Preliminary. Main results use one model, greedy decoding, regex outcome labels, and held-out sets of 85 to 114 texts.
+- Section 4.5 of the report (direction versus size of push, cross-model runs) comes from runs that no notebook has reviewed. Tables 27 to 42 in the full tables are the same unreviewed runs. Treat them as leads.
+- Several runs never completed (extra seeds, sampled decoding, cross-model steering transfer). The details page lists them.
+
+## Cite
+
+```bibtex
+@misc{gunderson2026mirageprobes,
+  author = {Gunderson, Zachary},
+  title  = {Mirage probes: recreation and steering on medical {VQA}},
+  year   = {2026},
+  url    = {https://ztgunderson.github.io/mirage-probes-steering/}
+}
+```
+
+Original paper:
+
+```bibtex
+@misc{benlevi2026mirageprobes,
+  author = {Ben-Levi, D. and Goldfeder, J. and Zhao, W. and Lapid, R. and LeVi, A. and Roush, A. G. and Shwartz-Ziv, R. and Lipson, H.},
+  title  = {Mirage Probes: How Vision Models Fake Visual Understanding},
+  year   = {2026},
+  note   = {arXiv:2606.13870},
+  url    = {https://arxiv.org/abs/2606.13870}
+}
+```
 
 ## License
 
-- None chosen yet. Upstream has no license either.
+MIT, see `LICENSE`. The upstream repo has no license file, so its code is referenced as a submodule, not copied.
+
+Contact: https://ztgunderson.github.io/
