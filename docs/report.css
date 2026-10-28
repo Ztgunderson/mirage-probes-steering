@@ -1,0 +1,42 @@
+/* Paper-report layout on top of brand.css. Standalone: pages need only brand.css + report.css (no site.css). */
+*{box-sizing:border-box}
+body{margin:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 4rem}
+.paper{max-width:60rem;margin:0 auto}
+.paper p{max-width:70ch}
+.hero{padding:3rem 0 1.5rem;border-bottom:4px solid var(--divider)}
+.hero .kicker{font:500 .85rem var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:0 0 .6rem}
+.hero h1{font-size:clamp(2rem,6vw,3.2rem);margin:0 0 .5rem;text-wrap:balance}
+.hero .sub{font-size:1.25rem;color:var(--muted);margin:0 0 .8rem}
+.hero .by{font:.9rem var(--mono);margin:0 0 1.2rem}
+.btns{display:flex;flex-wrap:wrap;gap:.6rem}
+.btn{display:inline-block;font:600 .9rem var(--mono);text-decoration:none;padding:.55rem 1rem;border:2px solid var(--ink);border-radius:4px;color:var(--ink);background:var(--paper)}
+.btn.primary{background:var(--ink);color:var(--paper)}
+.btn:hover{background:var(--link-wash);color:var(--ink)}
+.btn.primary:hover{background:var(--link);color:var(--paper)}
+.stats{display:grid;gap:.9rem;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));margin:1rem 0 1.5rem}
+.stat{background:var(--surface);border:1px solid var(--rule);border-top:4px solid var(--accent);border-radius:4px;padding:.8rem 1rem;min-width:0}
+.stat b{display:block;font:600 2rem/1.1 var(--mono);color:var(--ink)}
+.stat span{font-size:.9rem;color:var(--muted)}
+.paper h2{margin-top:2.8rem}
+.paper h3{margin-top:1.6rem}
+.paper section>h2 .n{color:var(--rust);margin-right:.5rem}
+.fig{margin:1.2rem 0;padding:0}
+.fig img{display:block;max-width:100%;height:auto;background:#fff;border:1px solid var(--rule)}
+.fig figcaption{margin-top:.5rem;max-width:70ch}
+.fig figcaption b{font-family:var(--mono);color:var(--ink)}
+.steps{list-style:none;counter-reset:s;padding:0;display:grid;gap:.8rem;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));margin:1rem 0}
+.steps li{counter-increment:s;background:var(--surface);border:1px solid var(--rule);border-radius:4px;padding:.8rem 1rem;min-width:0}
+.steps li::before{content:"Step " counter(s);display:block;font:600 .75rem var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--rust);margin-bottom:.3rem}
+.steps li b{font-family:var(--mono);display:block;margin-bottom:.2rem}
+.toc{columns:2 16rem;column-gap:2rem;margin:1.5rem 0}
+.toc a{display:block;padding:.15rem 0}
+.tablewrap{overflow-x:auto;margin:1rem 0}
+.tablewrap table{border-collapse:collapse;width:100%;min-width:30rem;font-size:.92rem}
+.tablewrap th,.tablewrap td{text-align:left;padding:.45rem .6rem;border-bottom:1px solid var(--rule);vertical-align:top}
+.tablewrap th{font:600 .78rem var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.tablewrap caption{caption-side:top;text-align:left;font:600 .9rem var(--mono);padding-bottom:.4rem}
+.bib{position:relative}
+.bib button{position:absolute;top:.5rem;right:.5rem;font:600 .8rem var(--mono);padding:.3rem .7rem;border:1px solid var(--ink);background:var(--paper);color:var(--ink);border-radius:4px;cursor:pointer}
+.refs{padding-left:1.2rem}.refs li{margin-bottom:.4rem}
+.appendix>h2:first-child{border-top-width:6px}
+.foot{margin-top:3rem;padding-top:1rem;border-top:3px solid var(--divider);display:flex;flex-wrap:wrap;gap:.4rem 1.2rem;font:.9rem var(--mono)}

@@ -1,0 +1,31 @@
+/* Autumn brand for project pages. Fonts: IBM Plex Mono + Plex Sans for long prose.
+   Gradient is for bars and chart ramps only (never text, never dividers; dividers are black, light ink in dark mode). All text/bg pairs checked by contrast.py (AA, most AAA). */
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400&display=swap");
+:root {
+  --paper: #f6f1e7;  --surface: #fdfaf3;  --ink: #2b2118;  --muted: #5c4f42;  --rule: #d8ccb8;
+  --moss: #4f5f3a;   --saffron: #c99a04;  --pumpkin: #c4621a;  --rust: #9a3b12;  --burgundy: #6b2233;
+  --divider: #000000; --link: #9a3b12;   --link-wash: #f3e1d3; --accent: #4f5f3a; --warn-wash: #f8ecc4;
+  --fall: linear-gradient(90deg, #76885b 0%, #ebb305 30%, #c4621a 62%, #9a3b12 82%, #6b2233 100%);
+  --mono: "IBM Plex Mono", ui-monospace, "Courier New", monospace;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --paper: #1b1510; --surface: #251d16; --ink: #f1e8d8; --muted: #bfb09a; --rule: #433727;
+  --moss: #a9bd8a; --saffron: #f0c43c; --pumpkin: #f0a05a; --rust: #f08a5c; --burgundy: #e59aa6;
+  --divider: #f1e8d8; --link: #f0a05a; --link-wash: #3a2616; --accent: #a9bd8a; --warn-wash: #3a3114;
+  color-scheme: dark; } }
+body { background: var(--paper); color: var(--ink); font: 400 1.0625rem/1.65 var(--sans); }
+h1, h2, h3, .site-head .name, .methods, .meta, nav.toc, .chip { font-family: var(--mono); }
+h1 { font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; }
+h2 { font-weight: 600; margin-top: 2.5rem; padding-top: 0.6rem; border-top: 3px solid var(--divider); }
+a { color: var(--link); text-underline-offset: 0.18em; }
+a:focus-visible { outline: 3px solid var(--saffron); outline-offset: 3px; }
+.site-head { border-bottom: 4px solid var(--divider); padding-bottom: 0.75rem; }
+.meta, .methods, figcaption, .src { color: var(--muted); font-size: 0.9rem; }
+.tldr, .toc, .warn, blockquote { background: var(--surface); border: 1px solid var(--rule); border-left: 4px solid var(--accent); border-radius: 4px; padding: 0.9rem 1.1rem; }
+.warn { background: var(--warn-wash); border-left-color: var(--saffron); }
+.chip { display: inline-block; font-size: 0.8rem; padding: 0.1rem 0.5rem; border: 1px solid var(--moss); color: var(--moss); border-radius: 999px; }
+code, pre { font-family: var(--mono); background: var(--surface); border: 1px solid var(--rule); }
+pre { padding: 0.8rem; overflow-x: auto; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
