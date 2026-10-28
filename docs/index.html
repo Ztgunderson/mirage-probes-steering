@@ -35,7 +35,7 @@
 
 <nav class="toc box" aria-label="Contents"><b class="mono">Contents</b>
   <a href="#introduction">1 Introduction</a><a href="#background">2 Background</a><a href="#methods">3 Methods</a>
-  <a href="#results">4 Results</a><a href="#discussion">5 Discussion</a><a href="#limitations">6 Limitations and corrections</a>
+  <a href="#results">4 Results</a><a href="#discussion">5 Discussion</a><a href="#limitations">6 Limitations</a>
   <a href="#future">7 Future work</a><a href="#reproducibility">Reproducibility</a><a href="#cite">Cite</a>
   <a href="#references">References</a><a href="#appendix">Appendix</a>
 </nav>
@@ -144,19 +144,8 @@
   <p><b>Before reaching for steering,</b> try the one-sentence prompt. Here it was the strongest intervention and the cheapest. The exception is the robotics reasoning model, where it barely helped.</p>
 </section>
 
-<section id="limitations"><h2><span class="n">6</span>Limitations and corrections</h2>
+<section id="limitations"><h2><span class="n">6</span>Limitations</h2>
   <p>Shaky: one model for the main results, greedy decoding, regex outcome labels, held-out sets of 85 to 114 texts where a single text visibly moves a rate, one steering layer in the reviewed run, and records of the same text that disagree across calls (majority used). MedXpertQA-MM activations were not extracted. Section 4.5 is unreviewed. The prompt v2 numbers on seed-0 test texts are not held out, because I wrote v2 after reading some of those texts.</p>
-  <p>What I got wrong, with what replaced it:</p>
-  <ul>
-    <li>I first read the paper's best probe as evidence about internal state. It mostly reads the reply. Replaced by the pre-answer probe.</li>
-    <li>I used the paper's mirage label. About half of its mirages on this model were admissions in other words. Replaced by a label with extra phrasings.</li>
-    <li>I used "same answer with and without the image" on yes/no. Much of that is chance agreement.</li>
-    <li>I treated the multiple-choice set as a mirage test. Its prompt forbids admitting.</li>
-    <li>My first SLAKE run split by record, so identical inputs were in train and test. Stopped and rerun with splits over distinct texts.</li>
-    <li>I read the raw mirage vs abstain direction as a behaviour direction. Most of it is question type.</li>
-    <li>The leftover-mirage vector failed its permutation gate on one seed. On another seed no vector met the pre-set rule.</li>
-    <li>I wrote a second honesty prompt after seeing some test questions. I re-checked it only on questions it never saw.</li>
-  </ul>
   <p>Notebook 04 has a prose line that quotes a slightly different peak for the type-centred probe than its own output. The tables use the cell output. Full list of what did not hold up: <a href="#appendix-g">Appendix G</a>.</p>
 </section>
 
